@@ -2,7 +2,7 @@ var XT = require('./index');
 
 
 XT.on('debug', function(msg) {
-    //console.log(':> ' + msg);
+    // console.log(':> ' + msg);
 });
 
 XT.on('error', function(msg) {
@@ -17,7 +17,7 @@ XT.on('action', function(action) {
 XT.start(function(msg) {
     console.log('Midi Init: ' + msg);  
     startUp();
-});
+},{port:1});
 
 
 function startUp() {

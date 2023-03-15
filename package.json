@@ -1,27 +1,27 @@
 {
-  "name": "jw-xtouch",
-  "version": "1.0.1",
-  "description": "Wrapper for communicating with the Behringer X-Touch via midi",
+  "name": "node-mcu",
+  "version": "2.0",
+  "description": "Wrapper for communicating with Mackie control protocol via midi",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jonwyett/jw-xtouch.git"
+    "url": "git+https://github.com/etiennedemoulin/node-mcu.git"
   },
   "keywords": [
-    "x-touch",
-    "x32",
-    "behringer",
+    "mcu",
+    "mackie-control",
+    "hui",
     "midi"
   ],
-  "author": "Jonathan Wyett",
+  "author": "Etienne Démoulin",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jonwyett/jw-xtouch/issues"
+    "url": "https://github.com/etiennedemoulin/node-mcu/issues"
   },
-  "homepage": "https://github.com/jonwyett/jw-xtouch#readme",
+  "homepage": "https://github.com/etiennedemoulin/node-mcu#readme",
   "dependencies": {
     "midi": "^1.0.0"
   }

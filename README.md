@@ -1,12 +1,12 @@
-# jw-xtouch
+# node-mcu
 Wrapper for the Behringer X-Touch control surface over MIDI. Currently supports all features except the scribble strips. X-Touch needs to be in Mackie Control over USB.
 
 Simple use example, this will initialize the controller and make the 'SCRUB' button blink when it is pressed:
 
 ```javascript
-var xt = require('jw-xtouch');
+var mcu = require('node-mcu');
 
-xt.on('action', (action) => {
+mcu.on('action', (action) => {
     if (action.name === 'SCRUB' &&
         action.state === 'up') {
         xt.setButtonLight('SCRUB', 'blink');
@@ -187,7 +187,7 @@ When you assign buttons and knobs to toggles/groups/knob modes they no longer em
 
 # Naming conventions and states:
 
-## Faders 
+## Faders
 
 __Naming:__
 CH1 - CH8, MAIN

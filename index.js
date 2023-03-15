@@ -123,6 +123,7 @@ var faderMap = {
 
 
 function debug(msg) {
+    // console.log('debug', msg);
     emit('debug', msg);
 }
 
@@ -265,7 +266,7 @@ function runControlMap(action) {
     
     try {
         if (typeof modeMap[mode][control][name][state] === 'function') {
-            modeMap[mode][control][name][state]();    
+            modeMap[mode][control][name][state]();
             return true;
         } 
     } catch(e) { }
@@ -278,6 +279,7 @@ function runControlMap(action) {
     try {
         if (typeof controlMap[control] === 'function') {
             controlMap[control](name, state);
+            return true;
         }
     } catch (e) { }
 
@@ -294,7 +296,7 @@ function runControlMap(action) {
     //so for example all the button presses that should fire on the 'up' state
     try {
         if (typeof controlMap[control][state][name] === 'function') {
-            controlMap[control][state][name]();    
+            controlMap[control][state][name]();
             return true;
         } 
     } catch(e) { }
@@ -323,25 +325,13 @@ function callbackSafe(callback, option) {
  * @param {object} options 
  */
 function start(callback, options) {
-
-    var midiDeviceIndex = -1;
+    var midiDeviceIndex = 0;
 
     debug('MIDI Devices:');
     for (var i=0; i<midiOut.getPortCount(); i++) {
         var name = midiOut.getPortName(i);
-        debug(i + ': ' + name);	
-        if (name.toLowerCase().indexOf('x-touch') > -1 && midiDeviceIndex === -1) { 
-            midiDeviceIndex = i; 
-        }
+        console.log(i + ': ' + name);
     }
-
-    if (midiDeviceIndex) { 
-        debug('Found probable X-Touch on device ' + midiDeviceIndex);
-    } else {
-        debug("Didn't find expected midi device, using port " + midiDeviceIndex);
-        midiDeviceIndex = 1;
-    }
-
 
     if (options) {
         if (options.port) {
@@ -351,8 +341,10 @@ function start(callback, options) {
             }
         }
     }
-    midiIn.openPort(0);
+
+
     try {
+        midiIn.openPort(midiDeviceIndex);
         midiOut.openPort(midiDeviceIndex);
         callbackSafe(callback, 'Midi open on port ' + midiDeviceIndex);
     } catch(e) {
@@ -925,17 +917,18 @@ function processFader(fader, value, state) {
 
 
 function processFaderValue(fader) {
+    console.log(faders[fader].raw);
     var val, iPart, fPart;
     
     iPart = faders[fader].raw[1]; //the integer part
-    iPart /= 127; //convert to ratio
+    iPart /= 128; //convert to ratio
 
     fPart = faders[fader].raw[0]; //the fractional part
-    fPart /= 127; //convert to ratio
-    fPart /= 100; //convert to fraction
+    fPart /= 128; //convert to ratio
+    fPart /= 128; //convert to fraction
 
     val = iPart + fPart; //add them together
- 
+
     faders[fader].position = val;
 
     var oldValue = faders[fader].value; //save the old value for later
@@ -1243,6 +1236,60 @@ function addDecimal(value, isNeg) {
     return newValue;
 }
 
+
+// text is an array of x names (x e [0,8]);
+// line can be 'top' or 'bottom'
+function setFaderDisplay(textArray, line) {
+    sysEx = 240;
+    mackieID = [0,0,102];
+    MCU_ID = 20;
+    LCD = 18
+    topLine = 0;
+    botLine = 56;
+    element = [];
+
+    switch (line) {
+        case 'top':
+            element = [sysEx, ...mackieID, MCU_ID, LCD, topLine];
+            break;
+        case 'bottom':
+            element = [sysEx, ...mackieID, MCU_ID, LCD, botLine];
+            break;
+        default:
+    }
+
+    if (textArray.length !== 8) {
+        for (let i=textArray.length;i<8;i++) {
+            textArray.push('');
+        }
+    }
+
+    if (textArray.length !== 8) {
+        textArray = textArray.slice(0,8);
+        console.log("attention list will be trimed");
+    }
+    for (i in textArray) {
+        if (typeof textArray[i] === 'string') {
+            listText = textArray[i].split('');
+        } else if (typeof textArray[i] === 'number') {
+            thisString = textArray[i].toFixed(2).toString();
+            listText = thisString.split('')
+        }
+        for (let i=0;i<7;i++) {
+            if (listText[i] !== undefined) {
+                // console.log(listText[i]);
+                element.push(listText[i].charCodeAt(0));
+            }
+            else {
+                element.push(32);
+            }
+        }
+    }
+
+    element.push(247);
+    sendMidi(element);
+}
+
 /**
  * Outputs a value to the display
  * @param {string} elementName 
@@ -1284,8 +1331,7 @@ function setDisplay(elementName, value, rightAlign, toFixedValue) {
         //this is meant for internal use for showTempMessage
         elementArray.push(elementName);
     }
-    
-    //console.log(elementArray);
+
     if (elementArray) {
         //clear the element and quit if the value is specifically false
         if (!value && value !== 0 && typeof value !== 'string') {
@@ -1625,6 +1671,7 @@ exports.setDisplayLight = setDisplayLight;
 exports.setAllDisplayLights = setAllDisplayLights;
 exports.resetFaders = resetFaders;
 exports.setFaderMode = setFaderMode;
+exports.setFaderDisplay = setFaderDisplay;
 
 exports.setSignalLevel = setSignalLevel;
 exports.clearSignalBars = clearSignalBars;
