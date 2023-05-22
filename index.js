@@ -917,18 +917,10 @@ function processFader(fader, value, state) {
 
 
 function processFaderValue(fader) {
-    console.log(faders[fader].raw);
-    var val, iPart, fPart;
-    
-    iPart = faders[fader].raw[1]; //the integer part
-    iPart /= 128; //convert to ratio
+    const lsb = faders[fader].raw[0];
+    const msb = faders[fader].raw[1];
 
-    fPart = faders[fader].raw[0]; //the fractional part
-    fPart /= 128; //convert to ratio
-    fPart /= 128; //convert to fraction
-
-    val = iPart + fPart; //add them together
-
+    let val = (msb << 7 | lsb) / 16383;
     faders[fader].position = val;
 
     var oldValue = faders[fader].value; //save the old value for later
