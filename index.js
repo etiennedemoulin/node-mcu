@@ -330,7 +330,7 @@ function start(callback, options) {
     debug('MIDI Devices:');
     for (var i=0; i<midiOut.getPortCount(); i++) {
         var name = midiOut.getPortName(i);
-        console.log(i + ': ' + name);
+        debug(i + ': ' + name);
     }
 
     if (options) {
