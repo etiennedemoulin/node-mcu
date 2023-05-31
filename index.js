@@ -60,15 +60,15 @@ var DISPLAY = 176;
 var SIGNAL = 208;
 
 var faderModes = {
-    'CH1': { mode: 'decibel', resolution: 1 },
-    'CH2': { mode: 'decibel', resolution: 1 },
-    'CH3': { mode: 'decibel', resolution: 1 },
-    'CH4': { mode: 'decibel', resolution: 1 },
-    'CH5': { mode: 'decibel', resolution: 1 },
-    'CH6': { mode: 'decibel', resolution: 1 },
-    'CH7': { mode: 'decibel', resolution: 1 },
-    'CH8': { mode: 'decibel', resolution: 1 },
-    'MAIN': { mode: 'decibel', resolution: 1 },
+    'CH1': { mode: 'decibel', resolution: 1, release: true },
+    'CH2': { mode: 'decibel', resolution: 1, release: true },
+    'CH3': { mode: 'decibel', resolution: 1, release: true },
+    'CH4': { mode: 'decibel', resolution: 1, release: true },
+    'CH5': { mode: 'decibel', resolution: 1, release: true },
+    'CH6': { mode: 'decibel', resolution: 1, release: true },
+    'CH7': { mode: 'decibel', resolution: 1, release: true },
+    'CH8': { mode: 'decibel', resolution: 1, release: true },
+    'MAIN': { mode: 'decibel', resolution: 1, release: true },
 
 };
 
@@ -888,9 +888,11 @@ function processFaderRelease(value) {
     emit('action', response);
     
     var fader = faderMap[value];
-    //console.log('fader: ' + value + '=' + fader);
-    //console.log('raw: ' + faders[fader].raw);
-    sendMidi([faderMap[fader], faders[fader].raw[0], faders[fader].raw[1]]);
+    // console.log('fader: ' + value + '=' + fader);
+    // console.log('raw: ' + faders[fader].raw);
+    if (faderModes[faderMap[value]].release === true) {
+        sendMidi([faderMap[fader], faders[fader].raw[0], faders[fader].raw[1]]);
+    }
 }
 
 function processFader(fader, value, state) {
@@ -900,6 +902,7 @@ function processFader(fader, value, state) {
     //this will be true when the fader is touched and before it moves
     //console.log('OLD: ' + faders[fader].raw + ' = ' + [value,state]);
     if (faders[fader].raw[0] === value && faders[fader].raw[1] === state) {
+        // console.log("touch");
         var response = {
             control: 'fader',
             name: fader,
@@ -1021,7 +1024,7 @@ function processFaderValue(fader) {
         var response = {
             control: 'fader',
             name: fader,
-            state: faders[fader].value   
+            state: faders[fader].value
         };
         emit('action', response);
     }
@@ -1063,7 +1066,7 @@ midiIn.on('message', function(d, message) {
     if (type === BUTTON ) { 
         //first check to see if it was a fader
         if (value >=104 && value <=112) {
-            processFaderRelease(value);
+            (processFaderRelease)(value);
         } else { //now process the button
             name = buttons[value];
             if (name) {
@@ -1518,22 +1521,22 @@ function clearKnobModes() {
  * @param {string} mode - decibel/position
  * @param {number} resolution - a number or fraction setting the resolution
  */
-function setFaderMode(fader, mode, resolution) {
+function setFaderMode(fader, mode, resolution, release) {
     if (mode != 'decibel' && mode != 'position') {
         emit('error', 'setFaderMode: Invalid mode');
     }
     
     if (fader == 'all') {
         faderModes = {
-            'CH1': { mode: mode, resolution: resolution },
-            'CH2': { mode: mode, resolution: resolution },
-            'CH3': { mode: mode, resolution: resolution },
-            'CH4': { mode: mode, resolution: resolution },
-            'CH5': { mode: mode, resolution: resolution },
-            'CH6': { mode: mode, resolution: resolution },
-            'CH7': { mode: mode, resolution: resolution },
-            'CH8': { mode: mode, resolution: resolution },
-            'MAIN': { mode: mode, resolution: resolution },
+            'CH1': { mode: mode, resolution: resolution, release: release },
+            'CH2': { mode: mode, resolution: resolution, release: release },
+            'CH3': { mode: mode, resolution: resolution, release: release },
+            'CH4': { mode: mode, resolution: resolution, release: release },
+            'CH5': { mode: mode, resolution: resolution, release: release },
+            'CH6': { mode: mode, resolution: resolution, release: release },
+            'CH7': { mode: mode, resolution: resolution, release: release },
+            'CH8': { mode: mode, resolution: resolution, release: release },
+            'MAIN': { mode: mode, resolution: resolution, release: release },
         
         };    
     }
@@ -1541,6 +1544,7 @@ function setFaderMode(fader, mode, resolution) {
     try {
         faderModes[fader].mode = mode;
         faderModes[fader].resolution = resolution;
+        faderModes[fader].release = release;
     } catch (e) {
         emit('error', 'setFaderMode: ' + e);
     }
@@ -1553,6 +1557,15 @@ function setFaderMode(fader, mode, resolution) {
  * @param {number/string} value - which lights to light
  * @param {boolean} showSideLights - show the lights on the side
  */
+
+function setFaderRelease(fader, release) {
+    try {
+        faderModes[fader].release = release;
+    } catch (e) {
+        emit('error', 'setFaderRelease: ' + e);
+    }
+}
+
 function setKnobLight(knob, mode, value, showSideLights) {
     var knobCode = knobLights[knob];
 
@@ -1664,6 +1677,7 @@ exports.setAllDisplayLights = setAllDisplayLights;
 exports.resetFaders = resetFaders;
 exports.setFaderMode = setFaderMode;
 exports.setFaderDisplay = setFaderDisplay;
+exports.setFaderRelease = setFaderRelease;
 
 exports.setSignalLevel = setSignalLevel;
 exports.clearSignalBars = clearSignalBars;
